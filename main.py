@@ -12,7 +12,8 @@ from go import getAll
 from badwords import arrBad
 
 TOKEN = open("token.txt").readlines()[0].strip()
-ADMINUSERS = ["Aaron Santa Cruz", "Nathan Bronec", "Justin Bak"]
+ADMINUSERS = ["Nathan Bronec", "Justin Bak", "Aaron Santa Cruz"]
+ADMINUSERSID = [509895698330943497, 270778324861583362, 146276564726841344]
 warnings = {}
 
 vote = {}
@@ -34,44 +35,31 @@ bot = commands.Bot(command_prefix=prefix, description="Having Fun")
 
 # SKILLZ
 
-
-
-
 @bot.event
 async def on_message(message):
-    global warnings
-    message.content = message.content.lower()
-    messageStuff = message.content.split(" ")
-    for i in messageStuff:
-        await bot.process_commands(message)
-        if i in arrBad:
-            if(message.author.id not in warnings):
-                warnings[message.author.id] = 1
-            await bot.send_message(message.channel, message.author.display_name + " said a bad word. They have recieved a strike! They have " + str(warnings[message.author.id]) + " strikes!")
-            await bot.delete_message(message)
-            warnings[message.author.id] += 1
+	global warnings, ADMINUSERSID
+	message.content = message.content.lower()
+	messageStuff = message.content.split(" ")
+	for i in messageStuff:
+		await bot.process_commands(message)
+		if i in arrBad:
+			if(message.author.id not in warnings):
+				warnings[message.author.id] = 1
+			await bot.send_message(message.channel, message.author.display_name + " said a bad word. They have recieved a warnings! They have " + str(warnings[message.author.id]) + " warnings!")
+			await bot.delete_message(message)
+			warnings[message.author.id] += 1
+			if(warnings[message.author.id] > 5):
+				for i2 in ADMINUSERSID:
+					user = await bot.get_user_info(i2)
+					await bot.send_message(user, message.author.display_name + " has recieved " + str(warnings[message.author.id]-1) + " warnings. All future warnings will now be reported!")
 
 @bot.event
 async def on_ready():
-    print('Logged in as')
-    print(bot.user.name)
-    print(bot.user.id)
-    print('------')
-    print(discord.utils.oauth_url(bot.user.id))
-@bot.command(pass_context=True, hidden=True)
-async def setgame(ctx, *, game):
-    if ctx.message.author.id not in owner:
-        return
-    game = game.strip()
-    if game != "":
-        try:
-            await bot.change_presence(game=discord.Game(name=game))
-        except:
-            await bot.say("Failed to change game")
-        else:
-            await bot.say("Successfuly changed game to {}".format(game))
-    else:
-        await bot.send_cmd_help(ctx)
+	print('Logged in as')
+	print(bot.user.name)
+	print(bot.user.id)
+	print('------')
+	print(discord.utils.oauth_url(bot.user.id))
 
 @bot.command(pass_context=True, hidden=True)
 async def setname(ctx, *, name:str):
@@ -96,7 +84,7 @@ async def setname(ctx, *, name:str):
 @bot.command(pass_context=True, no_pm=True, hidden=True)
 async def prefix(ctx, *, prefixSet:str):
     """ Changing the Prefix (ADMIN ONLY) """
-    global bot, ADMINUSERS
+    global bot, ADMINUSERS, warnings
     u = ctx.message.author.display_name
     if(u in ADMINUSERS):
         bot.command_prefix = prefixSet
@@ -104,7 +92,9 @@ async def prefix(ctx, *, prefixSet:str):
     else:
         if(ctx.message.author.id not in warnings):
             warnings[ctx.message.author.id] = 1
-        await bot.say(ctx.message.author.display_name + " made a fool of themselves by trying to run a command that they can't! They now have " + warnings[ctx.message.author.id] + "warnings")
+            await bot.say(ctx.message.author.display_name + " made a fool of themselves by trying to run a command that they can't! They now have " + str(warnings[ctx.message.author.id]) + " warnings!")
+        else:
+          warnings[ctx.message.author.id] += 1
     
 
 @bot.command(pass_context=True)
@@ -131,6 +121,20 @@ async def hours(ctx):
     p = str(ctx.message.author.display_name)
     await bot.reply("I am sending them to you")
     await bot.whisper("You have: " + getHours(p) + " hours.")
+
+@bot.command(pass_context=True)
+async def warning(ctx):
+	""" get your warnings """
+	global warnings
+	p = str(ctx.message.author.id)
+	if p in warnings:
+		pWarnings = warnings[p]
+		await bot.reply("I am sending them to you")
+		await bot.whisper("You have: " + str(pWarnings) + " warnings.")
+	else:
+		await bot.reply("you have no warnings!")
+
+
 
 @bot.command(pass_context=True)
 async def money(ctx):
