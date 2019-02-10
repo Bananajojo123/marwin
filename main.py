@@ -45,7 +45,7 @@ async def on_message(message):
 		if i in arrBad:
 			if(message.author.id not in warnings):
 				warnings[message.author.id] = 1
-			await bot.send_message(message.channel, message.author.display_name + " said a bad word. They have recieved a warnings! They have " + str(warnings[message.author.id]) + " warnings!")
+			await bot.send_message(message.channel, message.author.display_name + " said a bad word. They have recieved a warning! They have " + str(warnings[message.author.id]) + " warnings!")
 			await bot.delete_message(message)
 			warnings[message.author.id] += 1
 			if(warnings[message.author.id] > 5):
