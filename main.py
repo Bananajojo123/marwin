@@ -11,7 +11,7 @@ from go import getAll
 from badwords import arrBad
 
 TOKEN = open("token.txt").readlines()[0].strip()
-ADMINUSERSID = [509895698330943497, 270778324861583362, 146276564726841344, 250059159381344256, 542835636588118036, 398399749192941568]
+ADMINUSERSID = [509895698330943497, 270778324861583362, 146276564726841344, 250059159381344256, 542835636588118036, 398399749192941568, 304777010343837710]
 warnings = {}
 
 vote = {}
@@ -24,14 +24,13 @@ categories = ["Name: ", "Build Season Hours: ", "Travel Requirements: ", "Letter
 
 prefix = "~"
 client = discord.Client()
-# @client.event
-# async def on_message(message):
-#     m = message.content.lower()
-#     if m == "jk":
-#         await client.send_message(message.channel, "THAT'S NOT OK TO SAY!")
 bot = commands.Bot(command_prefix=prefix, description="Having Fun")
 
-
+# if not discord.opus.is_loaded():
+    # or libopus.so on linux in the current directory
+    # you should replace this with the location the
+    # opus library is located in and with the proper filename.
+    # discord.opus.load_opus('opus')
 
 # SKILLZ
 
@@ -79,8 +78,24 @@ async def setname(ctx, *, name:str):
     else:
         await bot.send_cmd_help(ctx)
 
+@bot.command(pass_context=True)
+async def setdes(ctx, *, description:str):
+	""" Sets the description (ADMIN ONLY) """
+	global ADMINUSERSID, bot
+	uid = int(ctx.message.author.id)
+	if(uid in ADMINUSERSID):
+		bot.say("Changed my description to: " + description + ".")
+		bot.description = description
+	else:
+		if(uid not in warnings):
+			warnings[uid] = 1
+		else:
+			warnings[uid] += 1
+		await bot.say(ctx.message.author.display_name + " made a fool of themselves by trying to run a command that they can't! They now have " + str(warnings[ctx.message.author.id]) + " warnings!")
+		await bot.send_message(bot.get_channel("544377549367672842"), ctx.message.author.mention + " recieved a warning. Reason: Not an Admin. Message: " + str(ctx.message.content))
+	
 
-@bot.command(pass_context=True, no_pm=True, hidden=True)
+@bot.command(pass_context=True, no_pm=True)
 async def prefix(ctx, *, prefixSet:str):
 	""" Changing the Prefix (ADMIN ONLY) """
 	global bot, ADMINUSERSID, warnings
@@ -93,7 +108,8 @@ async def prefix(ctx, *, prefixSet:str):
 			warnings[ctx.message.author.id] = 1
 		else:
 			warnings[ctx.message.author.id] += 1
-			await bot.say(ctx.message.author.display_name + " made a fool of themselves by trying to run a command that they can't! They now have " + str(warnings[ctx.message.author.id]) + " warnings!")
+		await bot.say(ctx.message.author.display_name + " made a fool of themselves by trying to run a command that they can't! They now have " + str(warnings[ctx.message.author.id]) + " warnings!")
+		await bot.send_message(bot.get_channel("544377549367672842"), ctx.message.author.mention + " recieved a warning. Reason: Not an Admin. Message: " + str(ctx.message.content))
     
 
 @bot.command(pass_context=True)
@@ -103,15 +119,15 @@ async def github():
 
 @bot.command(pass_context=True)
 async def createvote(ctx, *, name:str):
-    global vote, voteOwner, voted
-    p = str(ctx.message.author.display_name)
-    """ Random Voting """
-    if(name not in vote):
-        vote[name] = 0
-        voteOwner[p] = name
-        await bot.reply("Created voting for " + name + ". Use votefor (name) to vote for " + name + ".")
-    else:
-        await bot.reply(name + " already exists!")
+	""" Creates a random vote """
+	global vote, voteOwner, voted
+	p = str(ctx.message.author.display_name)
+	if(name not in vote):
+		vote[name] = 0
+		voteOwner[p] = name
+		await bot.reply("Created voting for " + name + ". Use votefor (name) to vote for " + name + ".")
+	else:
+		await bot.reply(name + " already exists!")
 
 @bot.command(pass_context=True)
 async def hours(ctx):
@@ -155,12 +171,12 @@ async def delwarning(ctx, *, user:discord.User):
 		else:
 			warnings[ctx.message.author.id] += 1
 		await bot.say(ctx.message.author.display_name + " made a fool of themselves by trying to run a command that they can't! They now have " + str(warnings[ctx.message.author.id]) + " warnings!")
+		await bot.send_message(bot.get_channel("544377549367672842"), ctx.message.author.mention + " recieved a warning. Reason: Not an Admin. Message: " + str(ctx.message.content))
 
 @bot.command(pass_context=True)
 async def getuid(ctx, *, user:discord.User):
 	""" get a user's id """
 	await bot.reply("The id of " + str(user.display_name) + " is " + str(user.id))
-
 
 @bot.command(pass_context=True)
 async def addwarning(ctx, user:discord.User, reason:str):
@@ -262,16 +278,14 @@ async def donations(ctx):
     await bot.reply("We have: " + getDonations() + " from GoFundMe.")
 
 @bot.command(pass_context=True)
-async def terminate(ctx):
-	""" stops the bot (ADMIN ONLY) """
-	global ADMINUSERSID, client
-	u = int(ctx.message.author.id)
-	if(u in ADMINUSERSID):
-		client.close()
-	else:
-		
+async def echo(ctx, *, message:str):
+	""" echos what you said """
+	await bot.reply(message)
 
-
+@bot.command()
+async def manual():
+    """Gets the 2019 Deep Space Manual Code """
+    await bot.reply("The Code Is: $Robots&in#SPACE!!")
 
 @bot.command()
 async def invite():
@@ -283,5 +297,5 @@ async def ping():
     """Pong!"""
     await bot.reply("Pong!")
 
-bot.run('NTQzMjY2NzgyNjAxOTM2ODk4.Dz-Bog.7krYeVzdyBP79qdWVs6wJScTJI4')
+bot.run(TOKEN)
 
