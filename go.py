@@ -22,5 +22,4 @@ def getAll(user):
 		return "Not a user in the spreadsheet"
 
 	userRow = wks.row_values(int(membersList[user])+1)
-	print(userRow)
 	return(userRow)

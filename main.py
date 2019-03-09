@@ -9,6 +9,7 @@ from hours import getHours
 from money import getMoney
 from go import getAll
 from badwords import arrBad
+from letter import lettering
 
 TOKEN = open("token.txt").readlines()[0].strip()
 ADMINUSERSID = [509895698330943497, 270778324861583362, 146276564726841344, 250059159381344256, 542835636588118036, 398399749192941568, 304777010343837710]
@@ -50,6 +51,9 @@ async def on_message(message):
 			await bot.send_message(message.channel, message.author.mention + " said a bad word. They have recieved a warning! They have " + str(warnings[message.author.id]) + " warnings!")
 			await bot.delete_message(message)
 			if(warnings[message.author.id] > 5):
+				user = message.author
+				role = discord.utils.get(user.server.roles, name="Muted")
+				await client.add_roles(user, role)
 				for i2 in ADMINUSERSID:
 					user = await bot.get_user_info(i2)
 					await bot.send_message(user, message.author.display_name + " has recieved " + str(warnings[message.author.id]-1) + " warnings. All future warnings will now be reported!")
@@ -111,6 +115,23 @@ async def prefix(ctx, *, prefixSet:str):
 		await bot.say(ctx.message.author.display_name + " made a fool of themselves by trying to run a command that they can't! They now have " + str(warnings[ctx.message.author.id]) + " warnings!")
 		await bot.send_message(bot.get_channel("544377549367672842"), ctx.message.author.mention + " recieved a warning. Reason: Not an Admin. Message: " + str(ctx.message.content))
     
+@bot.command(pass_context=True)
+async def unmute(ctx, *, prefixSet:discord.User):
+	""" Changing the Prefix (ADMIN ONLY) """
+	global bot, ADMINUSERSID, warnings
+	u = str(ctx.message.author.id)
+	if(u in ADMINUSERSID):
+		user = ctx.message.author
+		role = discord.utils.get(user.server.roles, name="Muted")
+		await client.add_roles(user, role)
+	else:
+		if(ctx.message.author.id not in warnings):
+			warnings[ctx.message.author.id] = 1
+		else:
+			warnings[ctx.message.author.id] += 1
+		await bot.say(ctx.message.author.display_name + " made a fool of themselves by trying to run a command that they can't! They now have " + str(warnings[ctx.message.author.id]) + " warnings!")
+		await bot.send_message(bot.get_channel("544377549367672842"), ctx.message.author.mention + " recieved a warning. Reason: Not an Admin. Message: " + str(ctx.message.content))
+
 
 @bot.command(pass_context=True)
 async def github():
@@ -129,13 +150,26 @@ async def createvote(ctx, *, name:str):
 	else:
 		await bot.reply(name + " already exists!")
 
+
 @bot.command(pass_context=True)
 async def hours(ctx):
-    """ get hours """
-    global vote, voteOwner, voted
-    p = str(ctx.message.author.display_name)
-    await bot.reply("I am sending them to you")
-    await bot.whisper("You have: " + getHours(p) + " hours.")
+	""" get hours """
+	global vote, voteOwner, voted
+	p = str(ctx.message.author.display_name)
+	lettH = getHours(p).strip().split(":")
+	lettM = (int(lettH[0]) * 60) + int(lettH[1])
+	lettH = int(lettM)
+	compM = lettH
+	lettHM = lettH
+	compMM = compM
+	print(lettHM)
+	print(compMM)
+	if lettHM > 5400:
+		await bot.whisper("You have " + getHours(p) + ". You are done with everything hours related. Good job!")
+	elif compMM > 4560:    
+		await bot.whisper("You have " + getHours(p) + ". You are done with the travel requirements. You are also " + str(90-round(lettHM/60)) + " hours away from lettering.")
+	else:
+		await bot.whisper("You have " + getHours(p) + ". You have " + str(76-round(compMM/60)) + " hours left to be at robotics for." + " You are also " + "$" + str(90-round(lettHM/60)) + " hours away from lettering.")    
 
 @bot.command(pass_context=True)
 async def warning(ctx):
@@ -208,9 +242,7 @@ async def money(ctx):
     """ get money """
     p = str(ctx.message.author.display_name)
     await bot.reply("I am sending them to you")
-    lettM = getMoney(p).replace("," , "")
-    lettM = lettM.replace("$" , "")
-    lettM = lettM.strip()
+    lettM = getMoney(p).replace("," , "").replace("$" , "").strip()
     lettM = int(lettM)
     compM = lettM
     lettM = 400 - lettM
@@ -251,6 +283,18 @@ async def gov(ctx):
         await bot.whisper(categories[i2] + i)
         i2 += 1
 
+@bot.command(pass_context=True)
+async def letter(ctx):
+	""" get all requirements """
+	global categories
+	p = str(ctx.message.author.display_name)
+	await bot.reply("I am sending them to you")
+	list1 = getAll(p)
+	i2 = 0
+	await bot.whisper(lettering(p))
+	for i in list1:
+		await bot.whisper(categories[i2] + i)	
+		i2 += 1
 
 
 @bot.command(pass_context=True)
@@ -292,6 +336,7 @@ async def invite():
     """Bot Invite"""
     await bot.say("\U0001f44d")
     await bot.whisper("Add me with this link {}".format(discord.utils.oauth_url(bot.user.id)))
+
 @bot.command(pass_context=True)
 async def ping():
     """Pong!"""
