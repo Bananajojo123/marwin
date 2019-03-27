@@ -23,7 +23,5 @@ def getMoney(user):
 			memMonlen = len(memMon)
 			membersList[person] = memMon[0:memMonlen-4]
 			i += 1
-	if(user not in membersList):
-		return "Not a user in the spreadsheet"
-
-	return(membersList[user])
+	if(user in members):
+		return(membersList[user])

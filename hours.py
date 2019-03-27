@@ -18,7 +18,6 @@ def getHours(user):
 		membersDict[person] = hours[i]
 		i += 1		
 
-
-
-	print(membersDict[user])
-	return(membersDict[user])
+	if(user in members):
+		print(membersDict[user])
+		return(membersDict[user])
